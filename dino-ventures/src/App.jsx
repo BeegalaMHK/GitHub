@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AnimatePresence } from "framer-motion";
 
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
@@ -11,8 +12,8 @@ function App() {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState(null);
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // mobile
-  const [isCollapsed, setIsCollapsed] = useState(false); // desktop
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const [activeVideo, setActiveVideo] = useState(null);
   const [miniVideo, setMiniVideo] = useState(null);
@@ -20,7 +21,7 @@ function App() {
   const getCategory = (video) =>
     dataset.categories.find((c) =>
       c.contents.some((v) => v.slug === video.slug),
-    ).category;
+    )?.category;
 
   const toggleSidebar = () => {
     if (window.innerWidth < 768) {
@@ -30,14 +31,8 @@ function App() {
     }
   };
 
-  const handleCategory = (v) => {
-    setActiveCategory(v);
-    setIsSidebarOpen(false); // close mobile sidebar
-  };
-
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
-      {/* HEADER */}
+    <div className="h-screen flex flex-col bg-[#0f0f0f] overflow-hidden">
       <Header
         search={search}
         setSearch={setSearch}
@@ -45,24 +40,27 @@ function App() {
         resetHome={() => setActiveCategory(null)}
       />
 
-      {/* BODY */}
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 overflow-hidden">
         <Sidebar
           active={activeCategory}
-          setActive={handleCategory}
+          setActive={setActiveCategory}
           isOpen={isSidebarOpen}
           isCollapsed={isCollapsed}
         />
 
         <div className="flex-1 overflow-y-auto">
-          {!activeVideo && (
-            <VideoFeed
-              search={search}
-              activeCategory={activeCategory}
-              onSelect={setActiveVideo}
-            />
-          )}
+          <VideoFeed
+            search={search}
+            activeCategory={activeCategory}
+            onSelect={(v) => {
+              setActiveVideo(v);
+              setMiniVideo(null);
+            }}
+          />
+        </div>
 
+        {/* FULL SCREEN PLAYER */}
+        <AnimatePresence>
           {activeVideo && (
             <FullPlayer
               video={activeVideo}
@@ -71,22 +69,29 @@ function App() {
                 setMiniVideo(activeVideo);
                 setActiveVideo(null);
               }}
-              onSelect={setActiveVideo}
+              onSelect={(v) => setActiveVideo(v)}
+              onClose={() => {
+                setMiniVideo(null);
+                setActiveVideo(null);
+              }}
             />
           )}
-        </div>
+        </AnimatePresence>
       </div>
 
-      {miniVideo && (
-        <MiniPlayer
-          video={miniVideo}
-          onRestore={() => {
-            setActiveVideo(miniVideo);
-            setMiniVideo(null);
-          }}
-          onClose={() => setMiniVideo(null)}
-        />
-      )}
+      {/* MINI PLAYER */}
+      <AnimatePresence>
+        {miniVideo && (
+          <MiniPlayer
+            video={miniVideo}
+            onRestore={() => {
+              setActiveVideo(miniVideo);
+              setMiniVideo(null);
+            }}
+            onClose={() => setMiniVideo(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
