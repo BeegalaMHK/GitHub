@@ -45,9 +45,6 @@ export default function Header({
           </button> */}
         </div>
       </div>
-
-      {/* RIGHT SPACER */}
-      <div className="w-56" />
     </header>
   );
 }
