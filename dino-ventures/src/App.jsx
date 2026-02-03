@@ -11,6 +11,9 @@ function App() {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState(null);
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // mobile
+  const [isCollapsed, setIsCollapsed] = useState(false); // desktop
+
   const [activeVideo, setActiveVideo] = useState(null);
   const [miniVideo, setMiniVideo] = useState(null);
 
@@ -19,12 +22,37 @@ function App() {
       c.contents.some((v) => v.slug === video.slug),
     ).category;
 
-  return (
-    <div className="h-screen flex flex-col">
-      <Header search={search} setSearch={setSearch} />
+  const toggleSidebar = () => {
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen((p) => !p);
+    } else {
+      setIsCollapsed((p) => !p);
+    }
+  };
 
-      <div className="flex flex-1">
-        <Sidebar active={activeCategory} setActive={setActiveCategory} />
+  const handleCategory = (v) => {
+    setActiveCategory(v);
+    setIsSidebarOpen(false); // close mobile sidebar
+  };
+
+  return (
+    <div className="h-screen flex flex-col overflow-hidden">
+      {/* HEADER */}
+      <Header
+        search={search}
+        setSearch={setSearch}
+        toggleSidebar={toggleSidebar}
+        resetHome={() => setActiveCategory(null)}
+      />
+
+      {/* BODY */}
+      <div className="flex flex-1 overflow-hidden relative">
+        <Sidebar
+          active={activeCategory}
+          setActive={handleCategory}
+          isOpen={isSidebarOpen}
+          isCollapsed={isCollapsed}
+        />
 
         <div className="flex-1 overflow-y-auto">
           {!activeVideo && (
